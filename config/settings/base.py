@@ -39,7 +39,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db('DATABASE_URL', default='postgres:///nomadgram'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'nomadgram',
+        'HOST': 'localhost',
+        'PORT': '5432'
+    }
+    #'default': env.db('DATABASE_URL', default='postgres:///nomadgram')
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
@@ -67,7 +73,7 @@ THIRD_PARTY_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'rest_framework',
+    'rest_framework', #restframework
 ]
 LOCAL_APPS = [
     'nomadgram.users.apps.UsersAppConfig',

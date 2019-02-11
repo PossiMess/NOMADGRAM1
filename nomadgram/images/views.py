@@ -4,14 +4,34 @@ from rest_framework.views import APIView
 from . import models
 from . import serializers
 
-
-class ListAllImages(APIView):
+class Feed(APIView):
 
     def get(self, request, format=None):
 
-        all_images = models.Image.objects.all()
+        user = request.user
 
-        images= serializers.ImageSerializers(all_images, many=True)
+        following_users = user.following.all()
 
-        return Response(data=images.data)
+        print(following_users)
+
+        image_list = []
+
+        for la in following_users:
+
+            following_images = la.images.all()[:2]
+
+            for image in following_images:
+
+                image_list.append(image)
+
+        sorted_list = sorted(image_list, key=lambda image: image.created_at, reverse=True)
+
+        serializer = serializers.ImageSerializers(sorted_list, many=True)
+
+
+        return Response(serializer.data)
+
+
+
+
 

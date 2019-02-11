@@ -6,5 +6,10 @@ from . import views
 app_name = "images"
 
 urlpatterns = [
-    path("all/", view=views.ListAllImages.as_view(), name="all_images"),
+   url(
+       regex=r'^$',
+       view=views.Feed.as_view(),
+       name='feed'
+   ),
+   
 ]
