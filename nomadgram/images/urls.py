@@ -12,17 +12,27 @@ urlpatterns = [
        name='feed'
    ),
    url(
-       regex=r'^(?P<image_id>[0-9]+)/like/',
+       regex=r'^(?P<image_id>[0-9]+)/$',
+       view=views.ImageDetail.as_view(),
+       name='feed'
+   ),
+   url(
+       regex=r'^(?P<image_id>[0-9]+)/likes/',
        view=views.LikeImage.as_view(),
        name='like_image'
    ),
    url(
-       regex=r'^(?P<image_id>[0-9]+)/unlike/',
+       regex=r'^(?P<image_id>[0-9]+)/unlikes/',
        view=views.UnLikeImage.as_view(),
        name='Unlike_image'
    ),
     url(
-        regex=r'^(?P<image_id>[0-9]+)/comments/',
+        regex=r'^(?P<image_id>[0-9]+)/comments/(?P<comment_id>[0-9]+)/$',
+       view=views.ModerateComments.as_view(),
+       name='delete_comments_icreated'
+    ),
+    url(
+        regex=r'^(?P<image_id>[0-9]+)/comments/$',
        view=views.CommentOnImage.as_view(),
        name='comment_image'
     ),
@@ -35,5 +45,6 @@ urlpatterns = [
         regex=r'^search/$',
         view=views.Search.as_view(),
         name='search'
-    )
+    ),
+    
 ]

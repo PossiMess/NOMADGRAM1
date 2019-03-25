@@ -2,9 +2,11 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from . import models, serializers
-from nomadgram.notifications import views as notification_views
 
+from . import models, serializers
+from nomadgram.users import serializers as user_serializers
+from nomadgram.notifications import views as notification_views
+from nomadgram.users import models as user_models
 class Feed(APIView):
 
     def get(self, request, format=None):
@@ -24,6 +26,12 @@ class Feed(APIView):
 
                 image_list.append(image)
 
+        my_images = user.images.all()[:2]
+
+        for image in my_images:
+
+            image_list.append(image)
+
         sorted_list = sorted(image_list, key=lambda image: image.created_at, reverse=True)
 
         serializer = serializers.ImageSerializers(sorted_list, many=True)
@@ -32,6 +40,21 @@ class Feed(APIView):
         return Response(serializer.data)
 
 class LikeImage(APIView):
+
+    def get(self, request, image_id, format=None):
+
+        likes = models.Like.objects.filter(image__id = image_id)
+
+
+        like_creator_id = likes.values('creator_id')
+
+
+        users = user_models.User.objects.filter(id__in=like_creator_id)
+
+        serializer = user_serializers.ListUserSerializer(users, many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
 
     def post(self, request, image_id, format=None):
 
@@ -152,5 +175,33 @@ class Search(APIView):
 
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
+
+class ModerateComments(APIView):
+    
+    def delete(self, request, image_id, comment_id, format=None):
+
+        user = request.user
+        try:
+            comment_to_delete = models.Comment.objects.get(id = comment_id, image__id = image_id, image__creator = user)
+        except models.Image.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ImageDetail(APIView):
+
+    def get(self, request, image_id, format=None):
+
+        user = request.user
+
+        try:
+            image = models.Image.objects.get(id=image_id)
+        except models.Image.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = serializers.ImageSerializers(image)
+
+        return Response(data = serializer.data, status=status.HTTP_200_OK)
+
 
 
