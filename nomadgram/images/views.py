@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from . import models, serializers
+from nomadgram.notifications import views as notification_views
 
 class Feed(APIView):
 
@@ -42,8 +43,6 @@ class LikeImage(APIView):
         except models.Image.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-
         try:
             preexisiting_like = models.Like.objects.get(
             creator=user,
@@ -52,13 +51,14 @@ class LikeImage(APIView):
             
             return Response(status=status.HTTP_304_NOT_MODIFIED)
 
-
         except models.Like.DoesNotExist:
             new_like = models.Like.objects.create(
                 creator=user,
                 image=found_image
             )
             new_like.save()
+
+            notification_views.create_notification(user, found_image.creator, 'like', found_image)
 
 
             return Response(status=status.HTTP_201_CREATED)
@@ -109,8 +109,10 @@ class CommentOnImage(APIView):
 
             serializer.save(creator=user, image=found_image)
 
+            notification_views.create_notification(user, found_image.creator, 'comment', found_image, serializer['message'].value)
+
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-            
+
 
         else:
 
@@ -121,7 +123,7 @@ class Comment(APIView):
     def delete(self, request, comment_id, format=None):
         
         user = request.user
-
+        #Comment Notifications
         try:
             comment = models.Comment.objects.get(id=comment_id, creator=user)
             comment.delete()
